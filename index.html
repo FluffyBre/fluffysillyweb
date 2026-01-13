@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluffy [6]</title>
+    <style>
+        /* --- MOTOR DE ANIMACIONES ULTRA-AGRESIVAS --- */
+        @keyframes masterFade { from { opacity: 0; filter: blur(20px); } to { opacity: 1; filter: blur(0); } }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); text-shadow: 2px 2px #f00, -2px -2px #0ff; }
+            2% { transform: translate(-5px, 5px); color: #fff; }
+            4% { transform: translate(-5px, -5px); text-shadow: -5px 5px #f00, 5px -5px #0ff; }
+            6% { transform: translate(5px, 5px); }
+            8% { transform: translate(5px, -5px); text-shadow: 5px -5px #f00, -5px 5px #0ff; color: #ff4d4d; }
+            10% { transform: translate(0); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes borderPulse { 
+            0% { border-color: #300; box-shadow: 0 0 10px #300; } 
+            50% { border-color: #f00; box-shadow: 0 0 40px #f00, inset 0 0 20px #f00; } 
+            100% { border-color: #300; box-shadow: 0 0 10px #300; } 
+        }
+
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(1200%); } }
+        
+        @keyframes attackAlert {
+            0% { background: #000; box-shadow: none; border-color: #f00; }
+            10% { background: #600; box-shadow: 0 0 100px #f00; border-color: #fff; }
+            20% { background: #000; border-color: #f00; }
+            30% { background: #600; box-shadow: 0 0 100px #f00; border-color: #fff; }
+            40% { background: #000; border-color: #f00; }
+            100% { background: #000; border-color: #f00; }
+        }
+
+        @keyframes executionFlash {
+            0% { border-left: 10px solid #f00; background: #080808; }
+            25% { border-left: 30px solid #fff; box-shadow: -20px 0 50px #f00, inset 0 0 30px #300; background: #200; }
+            50% { border-left: 40px solid #f00; box-shadow: -30px 0 80px #f00, inset 0 0 50px #600; background: #100; }
+            75% { border-left: 30px solid #fff; box-shadow: -20px 0 50px #f00, inset 0 0 30px #300; background: #200; }
+            100% { border-left: 10px solid #f00; background: #080808; }
+        }
+
+        @keyframes rotateSymbol { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        @keyframes textFocus {
+            0% { letter-spacing: -20px; opacity: 0; filter: blur(20px); }
+            100% { letter-spacing: 20px; opacity: 1; filter: blur(0); }
+        }
+
+        @keyframes ringPulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; text-shadow: 0 0 30px #90f; color: #fff; }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+
+        @keyframes shakeAggressive {
+            0% { transform: translate(0); }
+            10% { transform: translate(-3px, -3px); }
+            20% { transform: translate(3px, 3px); }
+            30% { transform: translate(-3px, 3px); }
+            40% { transform: translate(3px, -3px); }
+            50% { transform: translate(-2px, 2px); }
+            60% { transform: translate(2px, -2px); }
+            70% { transform: translate(-1px, 1px); }
+            80% { transform: translate(1px, -1px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes typewriter { from { width: 0; } to { width: 100%; } }
+        
+        @keyframes blinkCursor { from, to { border-color: transparent } 50% { border-color: var(--red-pure); } }
+
+        @keyframes shadowPulse {
+            0% { box-shadow: 0 0 10px rgba(255,0,0,0.2); }
+            50% { box-shadow: 0 0 40px rgba(255,0,0,0.6), inset 0 0 20px rgba(255,0,0,0.1); }
+            100% { box-shadow: 0 0 10px rgba(255,0,0,0.2); }
+        }
+
+        @keyframes fillBar { from { width: 0%; } }
+
+        @keyframes textReveal {
+            0% { color: #222; opacity: 0.5; }
+            100% { color: #aaa; opacity: 1; }
+        }
+
+        :root {
+            --red-pure: #ff0000;
+            --red-dark: #300000;
+            --xyox-main: #6a0dad;
+            --bg-black: #000000;
+            --panel-bg: #050505;
+            --text-main: #e0e0e0;
+        }
+
+        /* --- ESTILOS GLOBALES --- */
+        * { box-sizing: border-box; cursor: crosshair; }
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0; padding: 0;
+            line-height: 1.8;
+            overflow-x: hidden;
+            animation: masterFade 1.5s ease-out;
+        }
+
+        /* LÍNEA DE ESCANEO ACTIVA */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255, 0, 0, 0.15); z-index: 5000; pointer-events: none;
+            animation: scanline 3s linear infinite;
+        }
+
+        .container { max-width: 1500px; margin: 0 auto; padding: 100px 50px; }
+
+        /* --- REPRODUCTOR DE MÚSICA NOCTARIUM --- */
+        .music-player {
+            position: fixed; top: 20px; right: 20px; z-index: 6000;
+            background: rgba(0, 0, 0, 0.95); border: 1px solid var(--red-pure);
+            padding: 15px; width: 320px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            animation: shakeAggressive 5s infinite;
+        }
+        .music-player h5 { 
+            margin: 0 0 10px 0; font-size: 0.6rem; 
+            color: var(--red-pure); letter-spacing: 2px; 
+            animation: glitch 3s infinite;
+        }
+        .music-player audio { width: 100%; height: 30px; }
+
+        /* --- HEADER PRINCIPAL --- */
+        .main-header {
+            border-bottom: 3px solid var(--red-pure); 
+            padding-bottom: 60px; margin-bottom: 120px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+        }
+
+        .subject-title h1 {
+            font-size: 8rem; margin: 0; letter-spacing: 30px; color: #fff;
+            text-transform: uppercase; 
+            animation: glitch 4s infinite, textFocus 2s ease-out;
+        }
+
+        .status-box {
+            border: 4px solid var(--red-pure); padding: 40px; 
+            background: #0a0000; text-align: right; 
+            animation: borderPulse 2s infinite;
+        }
+        .status-box .serial { font-size: 3.5rem; font-weight: 900; display: block; line-height: 1; }
+        .status-box .rank { color: var(--red-pure); font-size: 1.8rem; letter-spacing: 5px; font-weight: bold; }
+
+        /* --- COMBAT STATS (ULTRA AGRESIVO) --- */
+        .combat-stats {
+            display: grid; grid-template-columns: repeat(3, 1fr); 
+            gap: 40px; margin-bottom: 150px;
+        }
+        .role-card {
+            background: #050505; border: 1px solid #222; padding: 50px;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .role-card.attack-mode { 
+            animation: attackAlert 3s infinite; 
+            border: 2px solid var(--red-pure); 
+        }
+        .role-card h3 { 
+            font-size: 1.5rem; letter-spacing: 5px; 
+            margin-bottom: 20px; animation: glitch 2s infinite; 
+        }
+        .role-val { 
+            font-size: 4rem; font-weight: 900; 
+            color: var(--red-pure); display: block; 
+        }
+        
+        .progress-container { 
+            background: #111; height: 15px; margin-top: 20px; 
+            border: 1px solid #333; overflow: hidden;
+        }
+        .progress-bar { 
+            height: 100%; background: var(--red-pure); 
+            animation: fillBar 4s ease-out; 
+        }
+
+        /* --- SIMBOLOGÍA ANIMADA --- */
+        h2.section-title {
+            font-size: 2.8rem; color: #fff; letter-spacing: 15px; 
+            text-transform: uppercase;
+            border-left: 12px solid var(--red-pure); 
+            padding-left: 40px; margin-bottom: 80px;
+            animation: glitch 8s infinite, textFocus 2.5s ease-out;
+        }
+
+        .symbol-grid {
+            display: grid; grid-template-columns: 1fr 1fr; 
+            gap: 50px; margin-bottom: 150px;
+        }
+        .symbol-box {
+            border: 1px solid #222; padding: 40px; 
+            background: #050505; text-align: center;
+            animation: shadowPulse 4s infinite;
+        }
+        .symbol-icon { font-size: 4rem; margin-bottom: 20px; display: inline-block; }
+        .bell-anim { animation: rotateSymbol 10s linear infinite; color: #8a7310; }
+        .eye-anim { animation: ringPulse 3s ease-in-out infinite; color: #90f; }
+
+        /* --- PORTRAIT FRAME --- */
+        .portrait-frame {
+            width: 550px; margin: 0 auto 50px; 
+            border: 1px solid #333; padding: 15px;
+            background: #000; position: relative;
+            animation: shakeAggressive 10s infinite;
+        }
+        .portrait-img { 
+            width: 100%; height: 600px; 
+            background: radial-gradient(circle, #110000, #000); 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        .portrait-img img { max-width: 90%; max-height: 90%; object-fit: contain; }
+
+        /* --- BOTÓN ACCESO FASES --- */
+        .access-phases-btn {
+            display: inline-block; margin: 40px auto; padding: 35px 80px;
+            background: #0a0000; border: 2px solid var(--red-pure); 
+            color: #fff; text-decoration: none;
+            font-size: 1.8rem; font-weight: bold; letter-spacing: 15px;
+            transition: 0.4s; animation: shakeAggressive 2s infinite;
+            display: block; text-align: center; width: 80%; margin: 40px auto 100px;
+        }
+        .access-phases-btn:hover { 
+            background: var(--red-pure); color: #000; 
+            box-shadow: 0 0 80px var(--red-pure); 
+        }
+
+        /* --- PROTOCOLOS DE EJECUCIÓN (ULTRA ANIMADOS) --- */
+        .execution-section {
+            margin-bottom: 180px;
+        }
+        .execution-grid {
+            display: grid; grid-template-columns: 1fr 1fr; 
+            gap: 40px; margin-bottom: 150px;
+        }
+        .execution-card {
+            background: #080808; 
+            border-left: 10px solid var(--red-pure); 
+            padding: 40px;
+            position: relative;
+            animation: executionFlash 4s infinite;
+            overflow: hidden;
+        }
+        .execution-card::before {
+            content: "LETHAL";
+            position: absolute; top: 10px; right: 20px;
+            font-size: 0.5rem; color: #f00;
+            font-weight: bold; letter-spacing: 3px;
+            animation: glitch 1s infinite;
+        }
+        .execution-card h4 { 
+            color: #fff; font-size: 1.4rem; 
+            margin-bottom: 20px; letter-spacing: 3px; 
+            animation: glitch 3s infinite;
+        }
+        .execution-card p { 
+            color: #888; font-size: 0.95rem; line-height: 1.8;
+            animation: textReveal 5s infinite alternate;
+        }
+
+        /* --- VITAL DASHBOARD --- */
+        .vital-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; 
+            gap: 60px; margin-bottom: 180px; 
+        }
+        .vital-card { 
+            background: #050505; padding: 50px; 
+            border-left: 6px solid var(--red-pure); 
+            position: relative;
+            animation: shadowPulse 5s infinite;
+        }
+        .vital-card::before { 
+            content: "LIVE FEED"; 
+            position: absolute; top: 10px; right: 20px; 
+            font-size: 0.6rem; color: #f00; 
+            animation: glitch 1s infinite; 
+        }
+        .vital-label { 
+            display: flex; justify-content: space-between; 
+            font-weight: bold; letter-spacing: 4px; 
+            color: #fff; margin-bottom: 15px;
+            animation: glitch 3s infinite; 
+        }
+        .bar-outer { 
+            height: 35px; background: #000; 
+            border: 1px solid #222; padding: 5px; 
+            margin-top: 15px; 
+        }
+        .bar-inner { height: 100%; }
+        .hp-fill { 
+            width: 100%; 
+            background: linear-gradient(90deg, #400, #f00); 
+            animation: fillBar 3s ease-in-out; 
+        }
+        .rex-fill { 
+            width: 100%; 
+            background: linear-gradient(90deg, #204, #90f); 
+            animation: fillBar 5s ease-in-out; 
+        }
+
+        /* --- BLOQUES DE INFORMACIÓN --- */
+        .info-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; 
+            gap: 100px; margin-bottom: 180px; 
+        }
+        .text-block { 
+            background: rgba(10, 10, 10, 0.8); 
+            padding: 60px; border: 1px solid #1a1a1a; 
+            position: relative;
+            animation: shadowPulse 6s infinite;
+        }
+        .text-block::after { 
+            content: "CLASSIFIED"; 
+            position: absolute; bottom: 10px; right: 10px; 
+            font-size: 0.6rem; color: #222; 
+        }
+        .text-block h4 { 
+            color: var(--red-pure); text-transform: uppercase; 
+            margin-top: 0; letter-spacing: 5px; 
+            font-size: 1.4rem; margin-bottom: 25px;
+            animation: glitch 4s infinite; 
+        }
+        .text-block p { 
+            text-align: justify; color: #aaa; 
+            font-size: 1rem; margin-bottom: 30px;
+            animation: textReveal 7s infinite alternate;
+        }
+
+        /* --- TERMINAL LOGS --- */
+        .log-terminal {
+            background: #010101; border: 1px solid #0f0; 
+            padding: 40px; font-size: 0.85rem; color: #0f0; 
+            margin-bottom: 150px; line-height: 2; 
+            border-top: 5px solid #0f0;
+            box-shadow: inset 0 0 20px #030;
+            animation: shadowPulse 8s infinite;
+        }
+
+        /* --- CITAS DE FLUFFY --- */
+        .fluffy-quotes-section {
+            background: linear-gradient(180deg, #000 0%, #1a0000 100%);
+            border: 2px solid var(--red-pure); 
+            padding: 100px 50px; margin-bottom: 150px;
+            text-align: center; position: relative;
+            animation: borderPulse 2s infinite, shadowPulse 4s infinite;
+        }
+        .fluffy-quotes-section::after { 
+            content: "☠"; position: absolute; 
+            top: 20px; left: 50%; transform: translateX(-50%); 
+            font-size: 3rem; color: #300; 
+        }
+        .fluffy-quotes-section h2 {
+            font-size: 2.5rem; color: #fff; 
+            letter-spacing: 10px; text-transform: uppercase;
+            margin-bottom: 50px; animation: glitch 5s infinite;
+        }
+        .quote-item {
+            margin-bottom: 40px; border-bottom: 1px dashed #333; 
+            padding-bottom: 30px;
+        }
+        .quote-text {
+            color: var(--text-main); font-size: 1.4rem; 
+            font-style: italic; display: block;
+            margin: 20px auto; padding: 0 50px;
+            animation: textReveal 6s infinite alternate;
+        }
+        .quote-author {
+            color: var(--red-pure); font-size: 1rem; 
+            margin-top: 20px; letter-spacing: 5px;
+            animation: glitch 2s infinite;
+        }
+
+        /* --- BOTÓN FINAL DE NAVEGACIÓN --- */
+        .final-nav-btn {
+            display: block; width: 100%; padding: 60px; 
+            background: #000; border: 3px solid var(--red-pure); 
+            color: #fff; font-size: 2.5rem;
+            text-decoration: none; letter-spacing: 40px; 
+            font-weight: 900; transition: 0.5s; 
+            text-align: center; text-transform: uppercase;
+            animation: borderPulse 1s infinite;
+        }
+        .final-nav-btn:hover { 
+            background: var(--red-pure); color: #000; 
+            letter-spacing: 50px; 
+            box-shadow: 0 0 100px var(--red-pure);
+        }
+
+        footer { 
+            text-align: center; padding: 100px; 
+            font-size: 0.7rem; color: #444; 
+            letter-spacing: 15px; border-top: 1px solid #111; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="music-player">
+    <h5>Signal In The Killing Floor</h5>
+    <audio controls loop>
+        <source src="music.mp3" type="audio/mpeg">
+        Audio no soportado.
+    </audio>
+    <div style="font-size: 0.5rem; color: #555; margin-top: 5px; text-align: right;">
+        ENGLISH VERSION: <a href="fluffy_eng.html" style="color: #888;">FLUFFY_ENG.HTML</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <header class="main-header">
+        <div class="subject-title">
+            <span style="color: var(--red-pure); font-weight: bold; letter-spacing: 5px;">DEMONIO</span>
+            <h1>FLUFFY</h1>
+            <p style="color: #444; letter-spacing: 8px; margin: 10px 0; animation: glitch 2s infinite;">TU PEOR PESADILLA</p>
+        </div>
+
+        <div class="status-box">
+            <span class="rank">STATUS: SS+</span>
+            <span class="serial">LEYEND #006</span>
+            <span style="font-size: 0.7rem; color: #555; display: block; margin-top: 10px;">LAST UPDATE: 2026-01-11</span>
+        </div>
+    </header>
+
+    <section class="combat-stats">
+        <div class="role-card attack-mode">
+            <div style="font-size: 0.7rem; color: #f00; font-weight: bold; margin-bottom: 10px;">[ WARNING: LETHAL FORCE AUTHORIZED ]</div>
+            <h3>ATAQUE</h3>
+            <span class="role-val">9.8</span>
+            <div class="progress-container"><div class="progress-bar" style="width: 98%;"></div></div>
+            <p style="font-size: 0.7rem; color: #666; margin-top: 15px;">MÁXIMA CAPACIDAD DE DAÑO UMBRAL</p>
+        </div>
+        <div class="role-card">
+            <h3>DEFENSA</h3>
+            <span class="role-val">7.5</span>
+            <div class="progress-container"><div class="progress-bar" style="width: 75%;"></div></div>
+            <p style="font-size: 0.7rem; color: #666; margin-top: 15px;">REGENERACIÓN POR ABSORCIÓN XYOX</p>
+        </div>
+        <div class="role-card">
+            <h3>APOYO</h3>
+            <span class="role-val">4.2</span>
+            <div class="progress-container"><div class="progress-bar" style="width: 42%;"></div></div>
+            <p style="font-size: 0.7rem; color: #666; margin-top: 15px;">PROTOCOLO ÚNICO: AUREXEL</p>
+        </div>
+    </section>
+
+    <h2 class="section-title">Análisis Simbólico</h2>
+    <section class="symbol-grid">
+        <div class="symbol-box">
+            <div class="symbol-icon bell-anim">🔔</div>
+            <h4>El Cascabel de Oro</h4>
+            <p>Sello de contención dimensional. Su rotación constante mantiene la masa de Xyox en un estado de baja densidad, permitiendo a Fluffy mantener su forma biológica. Cada vibración es un eco de una realidad distante.</p>
+        </div>
+        <div class="symbol-box">
+            <div class="symbol-icon eye-anim">👁️</div>
+            <h4>El Ojo del Vacío</h4>
+            <p>Representado en cada anillo de su cuerpo. No perciben luz, sino intenciones. Xyox observa a través de ellos, prediciendo ataques antes de que existan, convirtiendo a Fluffy en el "Profeta de la Aniquilación".</p>
+        </div>
+    </section>
+
+    <section style="text-align: center; margin-bottom: 100px;">
+        <div class="portrait-frame">
+            <div class="portrait-img">
+                <img src="fluffyapariance.png" alt="Fluffy Leyend 6">
+            </div>
+            <div style="text-align: right; font-size: 0.7rem; color: #444; padding: 10px; border-top: 1px solid #111;">
+                ARTISTA REGISTRADO: <span style="color: #fff;">youfrasn</span>
+            </div>
+        </div>
+        <a href="fluffy_fases.html" class="access-phases-btn">ACCEDER A FASES DE COMBATE →</a>
+    </section>
+
+    <h2 class="section-title">Protocolos de Ejecución</h2>
+    <section class="execution-section">
+        <div class="execution-grid">
+            <div class="execution-card">
+                <h4>#01: OBLIVION SNIPE</h4>
+                <p>Fluffy entra en sincronía total con Xyox. La Executioner XYR dispara una bala de antimateria umbral que borra la existencia del objetivo en todas las líneas temporales simultáneamente. No hay rastro, no hay cadáver. La víctima nunca existió.</p>
+            </div>
+            <div class="execution-card">
+                <h4>#02: REXIL REAPING</h4>
+                <p>Los anillos del cuerpo de Fluffy se expanden, creando un campo de gravedad cero. El enemigo es desmembrado molecularmente mientras Xyox extrae sus recuerdos para procesarlos como datos. Es una muerte lenta, dolorosa e informativa.</p>
+            </div>
+            <div class="execution-card">
+                <h4>#03: SHADOW COLLAPSE</h4>
+                <p>Utilizado contra ejércitos enteros. Fluffy libera el cascabel por 0.1 segundos. El vacío resultante devora todo en un radio de 1km, dejando solo un cráter de cristal negro. Fluffy recupera el cascabel antes de que el universo colapse sobre sí mismo.</p>
+            </div>
+            <div class="execution-card">
+                <h4>#04: AZTAR'S PENANCE</h4>
+                <p>Un protocolo diseñado específicamente para Jolteons y Aztar. Sobrecarga el sistema nervioso del objetivo con la misma agonía eléctrica que Fluffy sintió cuando fue traicionado, multiplicada por mil gracias a la potencia de Xyox. Venganza pura.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="vital-grid">
+        <div class="vital-card">
+            <div class="vital-label"><span>HEALTH POINTS</span><span>300,000 / 300,000</span></div>
+            <div class="bar-outer"><div class="bar-inner hp-fill"></div></div>
+            <p style="font-size: 0.7rem; color: #555; margin-top: 10px;">ESTADO CRÍTICO: ESTABLE. REGENERACIÓN CELULAR XYOX ACTIVA.</p>
+        </div>
+        <div class="vital-card">
+            <div class="vital-label"><span>REXIL ENERGY (XYOX)</span><span>500,000 / 500,000</span></div>
+            <div class="bar-outer"><div class="bar-inner rex-fill"></div></div>
+            <p style="font-size: 0.7rem; color: #555; margin-top: 10px;">UMBRAL DE COLAPSO: 98.4%. SINCRONIZACIÓN CON EL VACÍO: MÁXIMA.</p>
+        </div>
+    </section>
+
+    <section>
+        <h2 class="section-title">Expediente Noctarium</h2>
+        <div class="info-grid">
+            <div class="text-block">
+                <h4>Esencia Demonio Consciente</h4>
+                <p>Fluffy es la anomalía definitiva del Proyecto Leyend. Su existencia es una respuesta directa al trauma masivo provocado por Aztar, una traición que reescribió su esencia. La fusión con Xyox ha creado un ser que no responde a la moralidad, sino a la eficiencia ejecutora. Es un depredador de la causalidad.</p>
+                <p>Su presencia altera los sensores electrónicos en un radio de 50 metros, generando estática y distorsiones visuales y auditivas, consistentes con su clasificación de SS+ y su constante fluctuación entre planos existenciales.</p>
+                
+                <h4>Psicología Compartimentada: El Sarcasmo como Escudo</h4>
+                <p>A pesar de su naturaleza letal, Fluffy mantiene anclajes emocionales mínimos pero indestructibles. El sujeto Aurexel es el centro de su protocolo de defensa, actuando como el único ser capaz de silenciar el ruido constante de Xyox en su mente. Su personalidad irónica y su humor negro son filtros necesarios: si Fluffy perdiera su capacidad de sarcasmo, el Umbral Rexil se desestabilizaría, provocando una fuga de vacío catastrófica que borraría el área de la existencia.</p>
+            </div>
+            <div class="text-block">
+                <h4>Patrones de Conducta y Manías Detectadas</h4>
+                <p>Presenta una necesidad biológica de glucosa (dulces) para alimentar los complejos procesos de cálculo de Xyox. Este consumo no es un gusto, sino una exigencia metabólica crucial. Su comportamiento travieso y burlón suele preceder a una ejecución, utilizando la distracción y la subestimación como arma psicológica primaria.</p>
+                <p>Odia profundamente las cadenas y las descargas eléctricas de alta frecuencia, reaccionando con hostilidad inmediata de Clase XS ante estos estímulos. La "inclinación de cabeza de 90 grados" es un protocolo de escaneo de vulnerabilidades, no un gesto casual.</p>
+            </div>
+        </div>
+    </section>
+
+    <section style="margin-bottom: 180px;">
+        <h2 class="section-title">Perfil Psicológico</h2>
+        
+        <div class="info-grid">
+            <div class="text-block">
+                <h4>Personalidad</h4>
+                <p><strong style="color: var(--red-pure);">Silencioso:</strong> Fluffy comunica más con su presencia que con palabras. El silencio es su arma psicológica más efectiva.</p>
+                <p><strong style="color: var(--red-pure);">Observador:</strong> Analiza cada detalle del entorno antes de actuar. No hay movimiento que escape a su percepción mejorada por Xyox.</p>
+                <p><strong style="color: var(--red-pure);">Implacable pero no cruel:</strong> No disfruta matar, pero cuando ejecuta, no existe la piedad. Es una herramienta de balance, no un sádico.</p>
+                <p><strong style="color: var(--red-pure);">Protector selectivo:</strong> Solo protege aquello que considera "real" y genuino. Aurexel es el único ser que cumple este criterio absoluto.</p>
+                <p><strong style="color: var(--red-pure);">Desconfianza absoluta:</strong> Cualquier forma de autoridad o jerarquía es vista como una amenaza potencial después de la traición de Aztar.</p>
+            </div>
+
+            <div class="text-block">
+                <h4>Gustos Registrados</h4>
+                <p>• <strong style="color: var(--red-pure);">El silencio</strong> - Estado natural de existencia</p>
+                <p>• <strong style="color: var(--red-pure);">La noche</strong> - Cuando los anillos de Xyox brillan más</p>
+                <p>• <strong style="color: var(--red-pure);">Lugares en ruinas</strong> - Reflejan su estado interno</p>
+                <p>• <strong style="color: var(--red-pure);">Mirar sin ser visto</strong> - Control total de la situación</p>
+                <p>• <strong style="color: var(--red-pure);">Armas bien mantenidas</strong> - Respeto por las herramientas de ejecución</p>
+                <p>• <strong style="color: var(--red-pure);">Sonido del cerrojo XYR</strong> - Música de muerte inminente</p>
+
+                <h4 style="margin-top: 40px;">Disgustos Documentados</h4>
+                <p>• <strong style="color: var(--red-pure);">Órdenes</strong> - No responde a jerarquías</p>
+                <p>• <strong style="color: var(--red-pure);">Manipulación</strong> - Aztar le enseñó a detectarla</p>
+                <p>• <strong style="color: var(--red-pure);">Falsas promesas</strong> - Desencadenan trauma masivo</p>
+                <p>• <strong style="color: var(--red-pure);">Ser observado sin consentimiento</strong> - Violación de su espacio</p>
+                <p>• <strong style="color: var(--red-pure);">Que toquen su arma</strong> - Respuesta hostil inmediata</p>
+            </div>
+        </div>
+    </section>
+
+    <section style="margin-bottom: 180px;">
+        <h2 class="section-title">Análisis Táctico</h2>
+        
+        <div class="info-grid">
+            <div class="text-block">
+                <h4>Fortalezas Operacionales (7)</h4>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid var(--red-pure);">
+                    <p><strong>1. Precisión sobrenatural</strong> - Tasa de acierto del 99.9% a cualquier distancia</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid var(--red-pure);">
+                    <p><strong>2. Control emocional bajo presión</strong> - Xyox filtra el pánico y la duda</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid var(--red-pure);">
+                    <p><strong>3. Alta resistencia al dolor</strong> - Umbral modificado por fusión umbral</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid var(--red-pure);">
+                    <p><strong>4. Dominio de combate a distancia</strong> - Maestría absoluta del Executioner XYR</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid var(--red-pure);">
+                    <p><strong>5. Intimidación pasiva extrema</strong> - Su presencia paraliza enemigos</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid var(--red-pure);">
+                    <p><strong>6. Adaptación táctica rápida</strong> - Xyox procesa variables en milisegundos</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid var(--red-pure);">
+                    <p><strong>7. Sincronización perfecta con su arma</strong> - El XYR es extensión de su voluntad</p>
+                </div>
+            </div>
+
+            <div class="text-block">
+                <h4>Debilidades Críticas (7)</h4>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid #666;">
+                    <p><strong>1. Aislamiento emocional</strong> - Dificulta trabajo en equipo</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid #666;">
+                    <p><strong>2. Inestabilidad bajo recuerdos del pasado</strong> - Aztar es un gatillo psicológico</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid #666;">
+                    <p><strong>3. Dependencia parcial del Executioner XYR</strong> - Poder reducido sin él</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid #666;">
+                    <p><strong>4. Vulnerable durante transiciones de fase</strong> - 0.5 segundos críticos</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid #666;">
+                    <p><strong>5. Fases avanzadas dañan su cuerpo</strong> - Precio de poder extremo</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid #666;">
+                    <p><strong>6. No se retira cuando debería</strong> - Orgullo silencioso letal</p>
+                </div>
+                <div style="margin: 20px 0; padding: 15px; background: #0a0000; border-left: 3px solid #666;">
+                    <p><strong>7. Tristeza prolongada acelera fases peligrosas</strong> - Emoción = combustible Xyox</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section style="margin-bottom: 180px;">
+        <h2 class="section-title">Comportamiento Observable</h2>
+        
+        <div class="info-grid">
+            <div class="text-block">
+                <h4>Manías Detectadas</h4>
+                <p>• Ajusta el arma incluso cuando no dispara</p>
+                <p>• Observa a los enemigos antes de decidir matarlos</p>
+                <p>• Se queda inmóvil durante largos periodos</p>
+                <p>• Ladea la cabeza al escuchar mentiras</p>
+                <p>• Limpia el Executioner incluso herido</p>
+                <p>• No parpadea al apuntar</p>
+                <p>• Evita contacto visual prolongado</p>
+                <p>• Cuenta disparos mentalmente</p>
+                <p>• Apaga fuentes de luz cercanas</p>
+                <p>• Revisa su entorno tres veces antes de actuar</p>
+                <p>• Inclina el arma 15 grados tras cada ejecución</p>
+                <p>• Respira en ciclos de 7 segundos bajo estrés</p>
+            </div>
+
+            <div class="text-block">
+                <h4>Hábitos Operacionales</h4>
+                <p>• Patrullaje nocturno sistemático</p>
+                <p>• Vigilar desde alturas estratégicas</p>
+                <p>• Dormir con el arma a 30cm de distancia</p>
+                <p>• Revisar rutas de escape al entrar</p>
+                <p>• Mantener silencio absoluto durante misiones</p>
+                <p>• Analizar objetivos a distancia mínima 5 minutos</p>
+                <p>• No atacar primero sin evaluación completa</p>
+                <p>• Cambiar de posición tras cada combate</p>
+                <p>• Permanecer oculto tras ejecuciones</p>
+                <p>• Desaparecer sin dejar rastro alguno</p>
+                <p>• Verificar munición cada 30 minutos</p>
+                <p>• Nunca dar la espalda a puertas abiertas</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="text-block" style="width: 100%; margin-bottom: 180px;">
+        <h2 class="section-title">Crónica de la Venganza Eterna</h2>
+        <p>Durante eras, Fluffy caminó por las sombras como un Umbreon sin amo ni propósito, observando la decadencia del mundo. Su encuentro con Aztar no fue un duelo honorable, sino una ejecución fallida de su propia existencia. Aztar perforó su pecho con una descarga de energía eléctrica corrompida, buscando su extinción total y definitiva.</p>
+        <p>Pero el vacío solo se llenó con una furia y una negativa a morir tan intensas que perforaron el tejido de la realidad misma, llamando la atención de Xyox, el Observador de los Colapsos. Xyox no salvó a Fluffy; Xyox se fusionó con él en un pacto de venganza infinita.</p>
+        <p>El cascabel, antes un mero adorno decorativo, se convirtió en el Sello de Contención Dimensional. Los anillos, en ojos que ven más allá de lo físico, capaces de percibir intenciones y destinos. Y el alma de Fluffy, en el gatillo de una venganza que trasciende el tiempo, el espacio y la muerte.</p>
+        <p>Desde ese día, Fluffy ya no caza por hambre, placer o necesidad. Caza por un equilibrio brutal: cada disparo de la Executioner XYR es una corrección en el tejido de la realidad, eliminando aquello que Xyox considera "ruido innecesario" y a todo aquel que se interpone entre Fluffy y su objetivo final: Aztar.</p>
+    </section>
+
+    <section style="margin-bottom: 180px;">
+        <h2 class="section-title">Armamento: Executioner XYR</h2>
+        
+        <!-- VIDEO MODULE -->
+        <div style="width: 100%; max-width: 1200px; margin: 0 auto 80px; border: 2px solid var(--red-pure); background: #000; padding: 25px; box-shadow: 0 0 60px rgba(255, 0, 0, 0.1); animation: shadowPulse 7s infinite;">
+            <div style="width: 100%; aspect-ratio: 16 / 9; background: #020202;">
+                <video controls style="width: 100%; height: 100%;" poster="POSTER_ARMA.jpg">
+                    <source src="URL_VIDEO_ARMA.mp4" type="video/mp4">
+                    VIDEO NO SOPORTADO.
+                </video>
+            </div>
+            <div style="text-align: right; padding: 10px; font-size: 0.7rem; color: #444;">
+                VIDEO / ANIMACIÓN POR: <span style="color: #fff;">ALIAS_DEL_ARTISTA</span>
+            </div>
+        </div>
+        
+        <div class="info-grid">
+            <div class="text-block">
+                <h4>Protocolo EXE SNIPE: Aniquilación Umbral</h4>
+                <p>Alcance infinito. La munición no es un proyectil convencional, sino una condensación de vacío puro que viaja a través del plano umbral, materializándose directamente dentro del objetivo. Ignora cualquier barrera física, mágica o dimensional.</p>
+                <p>El impacto es una implosión de energía Xyox que no solo mata al objetivo, sino que lo borra de la memoria del tiempo mismo. Las personas olvidan que existió. Los registros desaparecen. Es como si nunca hubiera nacido.</p>
+            </div>
+            <div class="text-block">
+                <h4>Protocolo EXE RUSH: Supresión de Voluntad</h4>
+                <p>Modo de fuego de ráfaga de alta cadencia. Los "proyectiles" son pulsos concentrados de energía Xyox diseñados para desmantelar escudos espirituales, erosionar la voluntad del oponente y sembrar el pánico absoluto antes de la ejecución final.</p>
+                <p>Las víctimas reportan una sensación de "olvido existencial" y "vacío interno" antes de la muerte. Sus últimos pensamientos son consumidos por Xyox como datos procesables.</p>
+            </div>
+        </div>
+    </section>
+
+    <h2 class="section-title">Sistema de Logs Noctarium</h2>
+    <div class="log-terminal">
+        > [INITIATING NOCTARIUM_006_ARCHIVE_OVERRIDE...]<br>
+        > [XYOX_SUBROUTINE_ACTIVATED: 99.9% SYNC_STABLE]<br>
+        > [CASCABEL_ROTATION_STATUS: OPTIMAL // DIMENSIONAL_SEAL_INTACT]<br>
+        > [TARGET_ACQUISITION_PROTOCOL: AZTAR_SIGNATURE_PRIORITY_ALPHA]<br>
+        > [EMOTIONAL_ANCHOR_AUREXEL_DETECTED: STRESS_LEVEL_REDUCTION_-75%]<br>
+        > [WARNING: GLUCOSE_LEVELS_CRITICAL // IMMEDIATE_SUGAR_INGESTION_RECOMMENDED_FOR_STABILITY]<br>
+        > [EXECUTIONER_XYR_SYSTEM_STATUS: ALL_CHAMBERS_LOADED // READY_FOR_OBLIVION]<br>
+        > [PSYCHOLOGICAL_STATE: SARCASTIC_STABLE // HUMOR_PROTOCOLS_FUNCTIONAL]<br>
+        > [VOID_THRESHOLD: 98.4% // CONTAINMENT_HOLDING]<br>
+        > [AUDIT_LOG: "THE_WATCHER_SEES_WHAT_THE_PREY_IGNORES." // QUOTE_LOGGED]<br>
+        > [THREAT_ASSESSMENT: SCANNING_SECTOR_7... // TARGET_DETECTED]<br>
+        > [MESSAGE_FROM_FLUFFY: "No te preocupes. No dolerá... mucho. Bueno, miento. Dolerá bastante."]<br>
+        > [EXECUTION_AUTHORIZED // ELIMINATING_NOISE_FROM_REALITY]<br>
+        > [STATUS_REPORT: AWAITING_COMMAND // PREPARING_FOR_FINAL_SEQUENCE]
+    </div>
+
+    <section class="fluffy-quotes-section">
+        <h2>MONÓLOGO FINAL // CITAS DE FLUFFY</h2>
+        <div class="quote-item">
+            <span class="quote-text">"El vacío no espera. Y yo tampoco."</span>
+            <span class="quote-author">FLUFFY // PROTOCOL: OBLIVION</span>
+        </div>
+        <div class="quote-item">
+            <span class="quote-text">"Tu existencia es solo ruido en el sistema. Y yo soy la eliminación."</span>
+            <span class="quote-author">FLUFFY // THE CLEANSER</span>
+        </div>
+        <div class="quote-item">
+            <span class="quote-text">"¿Miedo? Eso es lindo. Significa que aún tienes algo que perder."</span>
+            <span class="quote-author">FLUFFY // THE FUNERAL DIRECTOR</span>
+        </div>
+        <div class="quote-item">
+            <span class="quote-text">"Aztar no está muerto. Está siendo borrado. Lentamente. Dolorosamente."</span>
+            <span class="quote-author">FLUFFY // VENGEANCE PROTOCOL</span>
+        </div>
+        <div class="quote-item">
+            <span class="quote-text">"Xyox dice que tu tiempo se ha acabado. Y él nunca miente."</span>
+            <span class="quote-author">FLUFFY // THE OBSERVER'S VOICE</span>
+        </div>
+        <div class="quote-item">
+            <span class="quote-text">"El silencio es la única verdad que queda cuando yo me voy."</span>
+            <span class="quote-author">FLUFFY // AFTERMATH</span>
+        </div>
+    </section>
+
+    <a href="fluffy_eng.html" class="final-nav-btn">English Version →</a>
+
+    <footer>
+        NOCTARIUM PROJECT // 2026 // "YO SOY LA CONSECUENCIA" // ElementalLeyends
+    </footer>
+
+</div>
+
+</body>
+</html>

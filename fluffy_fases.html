@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluffy Fases</title>
+    <style>
+        /* --- ANIMACIONES MEJORADAS --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes glowPulse { 0%, 100% { box-shadow: 0 0 10px rgba(144, 0, 255, 0.3); } 50% { box-shadow: 0 0 30px rgba(144, 0, 255, 0.8), inset 0 0 20px rgba(144, 0, 255, 0.2); } }
+        @keyframes bloodPulse { 0%, 100% { border-color: #400; box-shadow: 0 0 5px #400; } 50% { border-color: #f00; box-shadow: 0 0 25px #f00, inset 0 0 15px rgba(255, 0, 0, 0.3); } }
+        @keyframes shake { 
+            0% { transform: translate(0); } 
+            10% { transform: translate(-2px, -2px); } 
+            20% { transform: translate(2px, 2px); } 
+            30% { transform: translate(-2px, 2px); } 
+            40% { transform: translate(2px, -2px); } 
+            50% { transform: translate(-1px, 1px); }
+            60% { transform: translate(1px, -1px); }
+            70% { transform: translate(-1px, -1px); }
+            80% { transform: translate(1px, 1px); }
+            100% { transform: translate(0); } 
+        }
+        @keyframes glitchText { 
+            0% { text-shadow: 2px 0 #0f0, -2px 0 #f00; } 
+            25% { text-shadow: -2px 0 #00f, 2px 0 #f00; }
+            50% { text-shadow: 2px 0 #f00, -2px 0 #0ff; } 
+            75% { text-shadow: -2px 0 #f00, 2px 0 #0f0; }
+            100% { text-shadow: 2px 0 #0f0, -2px 0 #f00; } 
+        }
+        @keyframes ultimateDecay {
+            0% { opacity: 0.8; filter: blur(0px) grayscale(1) brightness(0.8); }
+            25% { opacity: 0.5; filter: blur(1px) grayscale(0.8) brightness(0.6); }
+            50% { opacity: 0.4; filter: blur(2px) brightness(0.5) grayscale(1); }
+            75% { opacity: 0.6; filter: blur(1px) grayscale(0.9) brightness(0.7); }
+            100% { opacity: 0.7; filter: blur(0.5px) grayscale(1) brightness(0.8); }
+        }
+        @keyframes worldEnd {
+            0% { border-color: #f00; background: #050000; filter: brightness(1); }
+            25% { border-color: #000; background: #1a0000; filter: brightness(0.5) hue-rotate(10deg); }
+            50% { border-color: #f00; background: #050000; filter: brightness(1.2); }
+            75% { border-color: #000; background: #1a0000; filter: brightness(0.5) hue-rotate(-10deg); }
+            100% { border-color: #f00; background: #050000; filter: brightness(1); }
+        }
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(1000%); } }
+        @keyframes scanAnalysis { 0% { top: 0%; } 100% { top: 100%; } }
+        @keyframes textReveal { 0% { color: #444; } 100% { color: #aaa; } }
+        @keyframes ringRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        :root {
+            --bg-main: #020202;
+            --text-main: #a0a0a0;
+            --accent-purple: #6a0dad;
+            --accent-red: #900;
+            --accent-bright-red: #f00;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0; padding: 0; 
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* EFECTO SCANLINE */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; 
+            width: 100%; height: 3px;
+            background: rgba(144, 0, 255, 0.1); 
+            z-index: 9999; pointer-events: none;
+            animation: scanline 4s linear infinite;
+        }
+
+        .container { 
+            max-width: 1400px; margin: 0 auto; 
+            padding: 80px 40px; animation: fadeIn 1s ease-out;
+        }
+
+        /* --- HEADER --- */
+        header { 
+            border-bottom: 3px solid var(--accent-red); 
+            margin-bottom: 80px; padding-bottom: 30px;
+            animation: glowPulse 3s infinite;
+        }
+        h1 { 
+            color: #fff; font-size: 4rem; margin: 10px 0; 
+            letter-spacing: 10px; text-transform: uppercase;
+            animation: glitchText 5s infinite;
+        }
+        .id-badge { 
+            background: var(--accent-red); color: #000; 
+            padding: 5px 15px; font-weight: bold; 
+            letter-spacing: 3px; display: inline-block;
+        }
+
+        /* --- ESTRUCTURA FASE BOX --- */
+        .fase-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            background: #080808;
+            border: 2px solid #1a1a1a;
+            padding: 40px;
+            margin-bottom: 100px;
+            position: relative;
+            animation: fadeIn 1.2s ease-out;
+            transition: transform 0.3s ease;
+        }
+        .fase-box:hover { transform: scale(1.01); }
+
+        .fase-info h2 { 
+            color: #fff; 
+            border-bottom: 2px solid #333; 
+            padding-bottom: 15px; margin-top: 0;
+            font-size: 2.5rem; letter-spacing: 5px;
+        }
+        .fase-info h3 { 
+            color: var(--accent-red); 
+            font-size: 1rem; 
+            text-transform: uppercase; 
+            margin: 20px 0 10px 0; 
+            letter-spacing: 2px;
+        }
+        .fase-info p { 
+            font-size: 0.95rem; 
+            line-height: 1.6; 
+            margin: 8px 0;
+            animation: textReveal 3s infinite alternate;
+        }
+        ul { 
+            padding-left: 20px; 
+            list-style: square;
+        }
+        ul li { 
+            font-size: 0.9rem; 
+            line-height: 1.5; 
+            margin: 8px 0;
+            animation: textReveal 4s infinite alternate;
+        }
+
+        .img-container {
+            width: 100%;
+        }
+
+        .img-placeholder {
+            width: 100%; 
+            height: 550px;
+            background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+            border: 2px solid #222;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative; 
+            overflow: hidden;
+        }
+
+        .img-placeholder img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .img-placeholder::after {
+            content: ""; 
+            position: absolute; 
+            width: 100%; 
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #f00 50%, transparent 100%);
+            animation: scanAnalysis 3s linear infinite;
+        }
+
+        .artist-credit {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #444;
+            padding: 10px;
+            border-top: 1px solid #111;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        .artist-credit span {
+            color: #888;
+        }
+
+        .key-diff {
+            margin-top: 30px; padding: 20px; 
+            background: #111;
+            border-left: 5px solid #fff; 
+            color: #fff; font-style: italic;
+            font-size: 1rem; letter-spacing: 1px;
+            animation: glowPulse 4s infinite;
+        }
+
+        /* --- FASE I: NOCTARIUM (RESPLANDOR PÚRPURA) --- */
+        .fase-noctarium {
+            border: 2px solid #6a0dad;
+            animation: glowPulse 3s infinite;
+        }
+        .fase-noctarium h2 { 
+            color: #9370db !important; 
+            text-shadow: 0 0 10px #6a0dad;
+        }
+        .fase-noctarium .img-placeholder {
+            border: 2px solid #6a0dad;
+            box-shadow: inset 0 0 30px rgba(106, 13, 173, 0.3);
+        }
+
+        /* --- FASE II: OBLIVION (PULSO ROJO) --- */
+        .fase-oblivion { 
+            border: 2px solid #8b0000; 
+            animation: bloodPulse 2s infinite; 
+        }
+        .fase-oblivion h2 {
+            color: #ff4444 !important;
+            animation: glitchText 3s infinite;
+        }
+        .fase-oblivion .img-placeholder {
+            border: 2px solid #8b0000;
+            animation: bloodPulse 2s infinite;
+        }
+
+        /* --- FASE III: BLOODRAGE (GLITCH INTENSO) --- */
+        .fase-bloodrage { 
+            animation: shake 0.3s infinite linear;
+            border: 2px solid #f00;
+        }
+        .fase-bloodrage h2 { 
+            animation: glitchText 0.2s infinite; 
+            color: #f00 !important; 
+            font-size: 2.8rem;
+        }
+        .fase-bloodrage .img-placeholder {
+            border: 2px solid #f00;
+        }
+        .fase-bloodrage::before {
+            content: "⚠ CRÍTICO ⚠";
+            position: absolute; top: 10px; right: 20px;
+            color: #f00; font-size: 0.8rem; font-weight: bold;
+            animation: glitchText 0.5s infinite;
+            z-index: 10;
+        }
+
+        /* --- FASE IV: ETERNAL SORROW (DECADENCIA) --- */
+        .fase-eternal {
+            filter: grayscale(1);
+            border: 2px dashed #333;
+            animation: ultimateDecay 6s infinite ease-in-out;
+        }
+        .fase-eternal h2 {
+            color: #666 !important;
+            text-shadow: 0 0 5px #000;
+        }
+        .fase-eternal .img-placeholder {
+            opacity: 0.7;
+        }
+
+        /* --- FASE V: FUXION ETERNAL (APOCALIPSIS) --- */
+        .fase-fuxion {
+            border: 3px solid #f00;
+            background: #1a0000;
+            animation: worldEnd 0.15s infinite;
+            overflow: hidden;
+            position: relative;
+        }
+        .fase-fuxion::before {
+            content: "TOP SECRET - CLASIFICADO - EXTINCIÓN - APOCALIPSIS";
+            position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%) rotate(-15deg);
+            width: 200%; height: 200%;
+            font-size: 6rem; color: rgba(255, 0, 0, 0.08);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 0; pointer-events: none;
+            animation: ringRotate 20s linear infinite;
+        }
+        .fase-fuxion * { position: relative; z-index: 1; }
+        .fase-fuxion h2 {
+            color: #ff0000 !important;
+            text-shadow: 0 0 15px #f00, 0 0 30px #f00;
+            letter-spacing: 8px;
+            animation: glitchText 0.1s infinite;
+        }
+        .fase-fuxion .img-placeholder {
+            border: 3px double #f00;
+            background: radial-gradient(circle, #200, #000);
+        }
+        .fase-fuxion .key-diff {
+            border-color: #f00;
+            background: #200;
+            animation: worldEnd 0.2s infinite;
+        }
+
+        /* --- CAJAS DE ESTADÍSTICAS --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .stat-box {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-box h4 {
+            color: var(--accent-red);
+            margin: 0 0 10px 0;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+        }
+        .stat-box p {
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* --- FOOTER --- */
+        footer { 
+            text-align: center; 
+            border: 3px double #f00; 
+            padding: 50px; 
+            margin-top: 80px; 
+            color: #f00; 
+            background: #100;
+            font-size: 1.5rem;
+            letter-spacing: 5px;
+            animation: worldEnd 0.5s infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <span class="id-badge">LYDS 006 // REGISTRO DE FASES</span>
+            <h1>FLUFFY / NOCTARIUM</h1>
+            <p style="margin: 10px 0; letter-spacing: 3px;">ENTIDAD UMBRAL VINCULADA A XYOX // ANÁLISIS COMPLETO</p>
+        </header>
+
+        <!-- FASE I: NOCTARIUM -->
+        <section class="fase-box fase-noctarium">
+            <div class="img-container">
+                <div class="img-placeholder">
+                    <img src="fase1.jpg" alt="Fase I Noctarium">
+                </div>
+                <div class="artist-credit">ARTISTA: <span>Artista Desconocido</span></div>
+            </div>
+            <div class="fase-info">
+                <h2>FASE I — NOCTARIUM</h2>
+                <h3>Clasificación de Poder: SS</h3>
+                <h3>Estado Mental: Estable / Consciente</h3>
+                <h3>Rol Dominante: Control – Observación – Ejecución Precisa</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>AMENAZA</h4>
+                        <p style="color: #9370db;">MEDIA</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>CONSCIENCIA</h4>
+                        <p style="color: #9370db;">100%</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>SYNC XYOX</h4>
+                        <p style="color: #9370db;">15%</p>
+                    </div>
+                </div>
+
+                <h3>APARIENCIA</h3>
+                <p><strong>Forma:</strong> Umbreon de complexión mayor a la normal.</p>
+                <p><strong>Pelaje:</strong> Oscuro uniforme.</p>
+                <p><strong>Anillos:</strong> En luz: normales. En oscuridad: brillo rojizo-amarillento tenue.</p>
+                <p><strong>Ojos:</strong> Rojos visibles. Pupilas negras definidas.</p>
+                <p><strong>Collar antiguo con cascabel:</strong> Xyox en reposo.</p>
+
+                <h3>COMPORTAMIENTO</h3>
+                <ul>
+                    <li>Frío, analítico</li>
+                    <li>Evita violencia innecesaria</li>
+                    <li>Protege aliados si lo considera lógico</li>
+                    <li>Humor travieso ocasional, pero controlado</li>
+                </ul>
+
+                <h3>ESTADO DE XYOX</h3>
+                <ul>
+                    <li>Observación pasiva</li>
+                    <li>Ojos rara vez activos</li>
+                </ul>
+
+                <div class="key-diff">DIFERENCIA CLAVE: Noctarium no es debilidad—es contención.</div>
+            </div>
+        </section>
+
+        <!-- FASE II: OBLIVION -->
+        <section class="fase-box fase-oblivion">
+            <div class="img-container">
+                <div class="img-placeholder">
+                    <img src="fase2.png" alt="Fase II Oblivion">
+                </div>
+                <div class="artist-credit">ARTISTA: <span>sam eeveelutions</span></div>
+            </div>
+            <div class="fase-info">
+                <h2>FASE II — OBLIVION</h2>
+                <h3>Clasificación de Poder: XS</h3>
+                <h3>Estado Mental: Controlado, pero alterado</h3>
+                <h3>Rol Dominante: Dominio – Presión – Letalidad</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>AMENAZA</h4>
+                        <p style="color: #f44;">ALTA</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>CONSCIENCIA</h4>
+                        <p style="color: #f44;">80%</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>SYNC XYOX</h4>
+                        <p style="color: #f44;">45%</p>
+                    </div>
+                </div>
+
+                <h3>APARIENCIA</h3>
+                <p><strong>Ojos:</strong> Rojos intensos. Pupilas negras visibles.</p>
+                <p><strong>Anillos:</strong> Transformados en rombos con línea central. Cada uno es un ojo activo de Xyox. Movimiento constante.</p>
+                <p><strong>Alas:</strong> Demoniacas, funcionales.</p>
+                <p><strong>Presencia:</strong> El entorno se siente pesado, denso.</p>
+
+                <h3>COMPORTAMIENTO</h3>
+                <ul>
+                    <li>Silencioso</li>
+                    <li>No amenaza</li>
+                    <li>No dialoga</li>
+                    <li>Ejecuta sin prisa</li>
+                    <li>Reconoce aliados, pero con distancia emocional</li>
+                </ul>
+
+                <h3>ESTADO DE XYOX</h3>
+                <ul>
+                    <li>Observación activa</li>
+                    <li>Influencia moderada</li>
+                    <li>Comunicación constante con Fluffy</li>
+                </ul>
+
+                <div class="key-diff">DIFERENCIA CLAVE: Oblivion no es pérdida de control. Es el demonio consciente.</div>
+            </div>
+        </section>
+
+        <!-- FASE III: BLOODRAGE -->
+        <section class="fase-box fase-bloodrage">
+            <div class="img-container">
+                <div class="img-placeholder">
+                    <img src="fase3.png" alt="Fase III Bloodrage">
+                </div>
+                <div class="artist-credit">ARTISTA: <span>AI GENERATED (NO LISTO)</span></div>
+            </div>
+            <div class="fase-info">
+                <h2>FASE III — BLOODRAGE</h2>
+                <h3>Clasificación de Poder: XS+</h3>
+                <h3>Estado Mental: Casi Perdido</h3>
+                <h3>Rol Dominante: Aniquilación</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>AMENAZA</h4>
+                        <p style="color: #f00;">EXTREMA</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>CONSCIENCIA</h4>
+                        <p style="color: #f00;">20%</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>SYNC XYOX</h4>
+                        <p style="color: #f00;">85%</p>
+                    </div>
+                </div>
+
+                <h3>ACTIVADORES</h3>
+                <ul>
+                    <li>Descontrol emocional extremo</li>
+                    <li>Ver a un aliado gravemente herido o asesinado</li>
+                    <li>Ira acumulada</li>
+                    <li>Trauma directo</li>
+                </ul>
+
+                <h3>APARIENCIA</h3>
+                <p><strong>Ojos:</strong> Negros. Pupilas rojas diminutas, casi invisibles.</p>
+                <p><strong>Voz:</strong> Mucho más grave. Parece Xyox hablando.</p>
+                <p><strong>Anillos:</strong> Rombos más pequeños. Ojos de Xyox hiperactivos.</p>
+                <p><strong>Alas:</strong> Mucho más grandes.</p>
+                <p><strong>Postura:</strong> Agresiva, inestable.</p>
+
+                <h3>COMPORTAMIENTO</h3>
+                <ul>
+                    <li>Ataca sin evaluar riesgos</li>
+                    <li>No distingue prioridades</li>
+                    <li>Solo reconoce aliados por instinto</li>
+                    <li>No responde a órdenes</li>
+                </ul>
+
+                <h3>ESTADO DE XYOX</h3>
+                <ul>
+                    <li>Influencia dominante</li>
+                    <li>No control total, pero casi</li>
+                    <li>Xyox empuja constantemente</li>
+                </ul>
+
+                <div class="key-diff">DIFERENCIA CLAVE: Bloodrage no es locura. Es ira sin freno.</div>
+            </div>
+        </section>
+
+        <!-- FASE IV: ETERNAL SORROW -->
+        <section class="fase-box fase-eternal">
+            <div class="img-container">
+                <div class="img-placeholder">
+                    <img src="fase4.png" alt="Fase IV Eternal Sorrow">
+                </div>
+                <div class="artist-credit">ARTISTA: <span>AI GENERATED (SIN ARTISTA AUN)</span></div>
+            </div>
+            <div class="fase-info">
+                <h2>FASE IV — ETERNAL SORROW</h2>
+                <h3>Clasificación de Poder: XS+ (PROHIBIDA)</h3>
+                <h3>Estado Mental: Colapso Absoluto</h3>
+                <h3>Rol Dominante: Final</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>AMENAZA</h4>
+                        <p style="color: #666;">TERMINAL</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>CONSCIENCIA</h4>
+                        <p style="color: #666;">5%</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>SYNC XYOX</h4>
+                        <p style="color: #666;">99%</p>
+                    </div>
+                </div>
+
+                <h3>APARIENCIA</h3>
+                <p><strong>Ojos:</strong> Apagados.</p>
+                <p><strong>Anillos:</strong> Inmóviles.</p>
+                <p><strong>Cuerpo:</strong> Deteriorado.</p>
+                <p><strong>Presencia:</strong> El sonido desaparece a su alrededor.</p>
+
+                <h3>COMPORTAMIENTO</h3>
+                <ul>
+                    <li>No busca pelea</li>
+                    <li>No huye</li>
+                    <li>Cada acción es definitiva</li>
+                    <li>No hay retorno a fases anteriores</li>
+                </ul>
+
+                <h3>ESTADO DE XYOX</h3>
+                <ul>
+                    <li>Observación total</li>
+                    <li>Sin intervención</li>
+                </ul>
+
+                <div class="key-diff">DIFERENCIA CLAVE: Eternal Sorrow no es una fase de combate. Es una despedida.</div>
+            </div>
+        </section>
+
+        <!-- FASE V: FUXION ETERNAL -->
+        <section class="fase-box fase-fuxion">
+            <div class="img-container">
+                <div class="img-placeholder">
+                    <img src="fase5.png" alt="Fase V Fuxion Eternal">
+                </div>
+                <div class="artist-credit">ARTISTA: <span>ToyWasYeeted</span></div>
+            </div>
+            <div class="fase-info">
+                <h2>FASE FUTURA — FUXION ETERNAL</h2>
+                <h3>Estado: ARCHIVO SELLADO</h3>
+                <h3>Clasificación: [DATOS CORROMPIDOS]</h3>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <h4>AMENAZA</h4>
+                        <p style="color: #f00;">APOCALÍPTICA</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>CONSCIENCIA</h4>
+                        <p style="color: #f00;">ERROR</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>SYNC XYOX</h4>
+                        <p style="color: #f00;">∞%</p>
+                    </div>
+                </div>
+
+                <h3>⚠️ ADVERTENCIA CRÍTICA ⚠️</h3>
+                <p style="color: #f00; font-weight: bold; font-size: 1.1rem;">La convergencia con Aurexel no está autorizada.</p>
+                <p style="color: #f00;">Si ocurre, no existirá marcha atrás.</p>
+
+                <h3>CLASIFICACIÓN</h3>
+                <p style="color: #f00; font-weight: bold;">[ ARCHIVADO // SELLADO // PROHIBIDO ]</p>
+                <p style="color: #f00;">Manifestación de esta fase resulta en colapso de protocolos de contención.</p>
+                <p style="color: #f00;">La desaparición de límites entre identidad, conciencia y forma es inevitable.</p>
+
+                <div class="key-diff">⚠️ NO HAY RETORNO POSIBLE // ARCHIVO SELLADO ⚠️</div>
+            </div>
+        </section>
+
+        <footer>
+            <strong>FIN DEL ARCHIVO // ARCHIVO SELLADO</strong><br>
+            <span style="font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; display: block;">ElementalLeyends</span>
+        </footer>
+    </div>
+
+</body>
+</html>
